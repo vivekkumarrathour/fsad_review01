@@ -33,6 +33,7 @@ export default function AssessmentForm({ open = false, onClose = () => {}, editi
   }, [editing, open])
 
   function handleSave() {
+    const scores = editing?.scores || students.map(st => ({ studentId: st.id, score: 0 }))
     const payload = { 
       title, 
       date, 
@@ -41,7 +42,7 @@ export default function AssessmentForm({ open = false, onClose = () => {}, editi
       learningOutcome,
       term,
       courseId: Number(courseId),
-      scores: editing?.scores || [] 
+      scores
     }
     if (editing) updateAssessment(editing.id, payload)
     else addAssessment(payload)

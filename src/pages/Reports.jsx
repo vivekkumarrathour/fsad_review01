@@ -94,35 +94,84 @@ export default function Reports() {
       </Grid>
 
       <Grid container spacing={3} sx={{ mt: 1 }}>
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 3, boxShadow: 2 }}>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>📈 Subject Performance Overview</Typography>
-            <Box sx={{ height: 300 }}>
-              <PerformanceChart data={avgData} />
-            </Box>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, boxShadow: 2 }}>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>🎯 GPA Distribution</Typography>
-            <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {gpaDistribution.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">No data</Typography>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={gpaDistribution} cx="50%" cy="50%" labelLine={false} label={({ name, percent }) => `${name.split(' ')[0]}: ${(percent * 100).toFixed(0)}%`} outerRadius={80} fill="#8884d8" dataKey="value">
-                      {gpaDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-            </Box>
-          </Paper>
-        </Grid>
+        {reportType === 'performance' && (
+          <>
+            <Grid item xs={12} md={8}>
+              <Paper sx={{ p: 3, boxShadow: 2 }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>📈 Subject Performance Overview</Typography>
+                <Box sx={{ height: 300 }}>
+                  <PerformanceChart data={avgData} />
+                </Box>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 3, boxShadow: 2 }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>🎯 GPA Distribution</Typography>
+                <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {gpaDistribution.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">No data</Typography>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={gpaDistribution} cx="50%" cy="50%" labelLine={false} label={({ name, percent }) => `${name.split(' ')[0]}: ${(percent * 100).toFixed(0)}%`} outerRadius={80} fill="#8884d8" dataKey="value">
+                          {gpaDistribution.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </Box>
+              </Paper>
+            </Grid>
+          </>
+        )}
+
+        {reportType === 'individual' && (
+          <Grid item xs={12}>
+            <Paper sx={{ p: 3, boxShadow: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>👤 Individual Student Performance</Typography>
+              {students.map(st => {
+                const scores = []
+                assessments.forEach(a => {
+                  const sc = a.scores.find(x => x.studentId === st.id)
+                  if (sc) scores.push(Math.round((sc.score / a.maxScore) * 100))
+                })
+                const avg = scores.length ? (scores.reduce((s, x) => s + x, 0) / scores.length) : 0
+                const gpa = (avg / 10).toFixed(2)
+                return (
+                  <Box key={st.id} sx={{ mb: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+                    <Typography variant="h6">{st.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">GPA: {gpa} | Average: {avg.toFixed(1)}%</Typography>
+                  </Box>
+                )
+              })}
+            </Paper>
+          </Grid>
+        )}
+
+        {reportType === 'outcome' && (
+          <Grid item xs={12}>
+            <Paper sx={{ p: 3, boxShadow: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>🎯 Learning Outcomes Analysis</Typography>
+              {[...new Set(assessments.map(a => a.learningOutcome))].map(outcome => {
+                const outcomeAssessments = assessments.filter(a => a.learningOutcome === outcome)
+                const allScores = []
+                outcomeAssessments.forEach(a => {
+                  a.scores.forEach(s => allScores.push(Math.round((s.score / a.maxScore) * 100)))
+                })
+                const avg = allScores.length ? (allScores.reduce((s, x) => s + x, 0) / allScores.length).toFixed(1) : 0
+                return (
+                  <Box key={outcome} sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{outcome}</Typography>
+                    <Typography variant="body2">Average Score: {avg}% | Assessments: {outcomeAssessments.length}</Typography>
+                  </Box>
+                )
+              })}
+            </Paper>
+          </Grid>
+        )}
       </Grid>
 
       <Paper sx={{ p: 3, mt: 3, boxShadow: 2 }}>
