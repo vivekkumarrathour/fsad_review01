@@ -18,7 +18,7 @@ function App() {
     <AuthProvider>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <BrowserRouter>
+        <BrowserRouter basename="/learn_track/">
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Home />} />
